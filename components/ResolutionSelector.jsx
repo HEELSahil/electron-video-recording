@@ -1,4 +1,3 @@
-// ResolutionSelector.js
 "use client";
 // Render a dropdown to select a resolution
 export default function ResolutionSelector({
@@ -7,7 +6,6 @@ export default function ResolutionSelector({
   onChange,
   id,
 }) {
-  // Add more descriptive labels for resolutions
   const resolutions = [
     { label: "640x480 (SD)", value: "640x480" },
     { label: "1280x720 (HD)", value: "1280x720" },

@@ -73,11 +73,6 @@ export default function RecordPage() {
             const actualWidth = videoRef.current.videoWidth;
             const actualHeight = videoRef.current.videoHeight;
 
-            console.log("Actual video dimensions:", {
-              width: actualWidth,
-              height: actualHeight,
-            });
-
             setActualDimensions({
               width: actualWidth,
               height: actualHeight,
@@ -115,13 +110,8 @@ export default function RecordPage() {
                   width: videoRef.current.videoWidth,
                   height: videoRef.current.videoHeight,
                 });
-
-                console.log("Updated video dimensions:", {
-                  width: videoRef.current.videoWidth,
-                  height: videoRef.current.videoHeight,
-                });
               }
-            }, 500); // Small delay to allow camera to adjust
+            }, 500);
           })
           .catch((error) => {
             console.error("Could not apply video constraints:", error);
@@ -240,7 +230,7 @@ export default function RecordPage() {
           onStop={handleStopRecording}
         />
 
-        {/* Playback Section: only displayed after recording stops */}
+        {/* Playback Section is only displayed after recording stops */}
         {!isRecording && videoURL && (
           <div className="mt-8 border-t border-gray-700 pt-6">
             <ResolutionSelector

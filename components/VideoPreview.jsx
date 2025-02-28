@@ -1,4 +1,3 @@
-// VideoPreview.js
 "use client";
 // Display the live webcam stream
 export default function VideoPreview({ videoRef, resolution }) {

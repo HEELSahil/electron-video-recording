@@ -1,6 +1,6 @@
 "use client";
 
-// RecordControls Component: Provides buttons to start and stop recording.
+// Start and stop recording buttons
 export default function RecordControls({ isRecording, onStart, onStop }) {
   return (
     <div className="my-4 flex gap-4">

@@ -1,4 +1,3 @@
-// PlaybackVideo.js
 "use client";
 // Display the recorded video for playback
 export default function PlaybackVideo({ videoURL, resolution }) {
