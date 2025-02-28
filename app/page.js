@@ -75,11 +75,15 @@ export default function RecordPage() {
     const filename = `recording-${Date.now()}.webm`;
 
     // Save the video file using the Electron API exposed in preload.js
-    const result = await window.electronAPI.saveVideo({ buffer, filename });
-    if (result.success) {
-      alert(`Video saved to: ${result.path}`);
+    if (window.electronAPI && window.electronAPI.saveVideo) {
+      const result = await window.electronAPI.saveVideo({ buffer, filename });
+      if (result.success) {
+        alert(`Video saved to: ${result.path}`);
+      } else {
+        alert(`Error saving video: ${result.error}`);
+      }
     } else {
-      alert(`Error saving video: ${result.error}`);
+      alert("Save to disk is only available in the Electron environment.");
     }
   };
 
@@ -129,7 +133,7 @@ export default function RecordPage() {
 
       <button
         onClick={handleSaveToDisk}
-        className="px-4 py-2 bg-green-500 text-white rounded"
+        className="px-4 py-2 bg-green-500 text-white rounded cursor-pointer"
       >
         Save to Disk
       </button>
