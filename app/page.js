@@ -100,41 +100,53 @@ export default function RecordPage() {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Video Recorder</h1>
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div
+        className="bg-black rounded-3xl shadow-lg p-6"
+        style={{ width: `${previewResolution.width + 50}px` }}
+      >
+        <h1 className="text-3xl font-bold text-center text-indigo-300 mb-6">
+          Video Recorder
+        </h1>
 
-      {/* Preview Resolution Selector */}
-      <ResolutionSelector
-        id="previewResolution"
-        label="Select Preview Resolution:"
-        currentValue={previewResolution}
-        onChange={setPreviewResolution}
-      />
+        {/* Preview Resolution Selector */}
+        <ResolutionSelector
+          id="previewResolution"
+          label="Preview Resolution:"
+          currentValue={previewResolution}
+          onChange={setPreviewResolution}
+        />
 
-      {/* Webcam Preview */}
-      <VideoPreview videoRef={videoRef} resolution={previewResolution} />
+        {/* Webcam Preview */}
+        <div className="flex justify-center my-6">
+          <VideoPreview videoRef={videoRef} resolution={previewResolution} />
+        </div>
 
-      {/* Record/Stop Buttons */}
-      <RecordControls
-        isRecording={isRecording}
-        onStart={handleStartRecording}
-        onStop={handleStopRecording}
-        onSave={handleSaveToDisk}
-        showSaveButton={!isRecording && videoURL !== ""}
-      />
+        {/* Record/Stop Controls */}
+        <RecordControls
+          isRecording={isRecording}
+          onStart={handleStartRecording}
+          onStop={handleStopRecording}
+          onSave={handleSaveToDisk}
+          showSaveButton={!isRecording && videoURL !== ""}
+        />
 
-      {/* Playback Section: only displayed after recording stops */}
-      {!isRecording && videoURL && (
-        <>
-          <ResolutionSelector
-            id="playbackResolution"
-            label="Select Playback Resolution:"
-            currentValue={playbackResolution}
-            onChange={setPlaybackResolution}
-          />
-          <PlaybackVideo videoURL={videoURL} resolution={playbackResolution} />
-        </>
-      )}
+        {/* Playback Section: only displayed after recording stops */}
+        {!isRecording && videoURL && (
+          <div className="mt-8 border-t border-gray-700 pt-6">
+            <ResolutionSelector
+              id="playbackResolution"
+              label="Playback Resolution:"
+              currentValue={playbackResolution}
+              onChange={setPlaybackResolution}
+            />
+            <PlaybackVideo
+              videoURL={videoURL}
+              resolution={playbackResolution}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
