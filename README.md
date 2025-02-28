@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ⚛️ Video Recorder
+
+## Features
+
+- Record video using your webcam with start/stop controls  
+- Choose custom resolutions for both video preview (camera capture) and playback using dropdowns
+- Preview your recording and view the actual captured resolution
+- Download the recorded video in two formats:
+  - **WebM:** The native format from MediaRecorder.
+  - 🔥 **MP4:** Converted from WebM using ffmpeg.wasm (includes audio transcoding with AAC).
+- Runs as a desktop app using Electron and can also be run in a browser for development.
+
 
 ## Getting Started
 
-First, run the development server:
+### Installation
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **Clone the Repository:**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   git clone https://github.com/HEELSahil/video-recording-app.git
+   cd video-recording-app
+   ```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+2. **Install Dependencies:**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+3. **Configure Electron (if needed):**
 
-To learn more about Next.js, take a look at the following resources:
+   Ensure the `main` field in your `package.json` is set to your Electron entry point (e.g., `"main": "main.js"`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Running the App
 
-## Deploy on Vercel
+#### Development Mode (Browser & Electron)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Start Next.js Dev Server:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npm run dev
+   ```
+
+2. **Start Electron:**
+
+   In another terminal window, run:
+
+   ```bash
+   npm run electron
+   ```
+
+The Electron window will load your Next.js app. You can also open the browser at [http://localhost:3000](http://localhost:3000) for testing.
+
+
+## Usage
+
+1. **Select Preview Resolution:**  
+   Use the dropdown to choose the desired resolution for the video capture.
+
+2. **Record a Video:**  
+   Click **Start Recording** to begin capturing video from your webcam. Click **Stop Recording** to finish recording.
+
+3. **Preview Your Video:**  
+   Once recording stops, the playback section will appear. You can adjust the playback resolution if needed.
+
+4. **Download Options:**  
+   Use the download buttons to download your recording:
+   - **Download MP4:** Converts the WebM recording to MP4 (this may take a few seconds).
+   - **Download WebM:** Downloads the native WebM recording directly.
+
+## Code Structure
+
+- **app/page.js:**  
+  Main React component managing the recording, preview, resolution settings, and downloads.
+
+- **components/ResolutionSelector.js:**  
+  A controlled component for selecting a resolution.
+
+- **components/VideoPreview.js:**  
+  Displays the live webcam stream with proper styling.
+
+- **components/PlaybackVideo.js:**  
+  Renders the recorded video for playback.
+
+- **components/RecordControls.js:**  
+  Provides start/stop recording controls.
+
+- **components/DownloadButtons.js:**  
+  Download buttons into a dedicated component.
+
+- **utils/convertToMp4.js:**  
+  Contains the logic to convert a WebM blob to MP4 using ffmpeg.wasm.
+
+- **main.js:**  
+  Electron main process file that creates the application window and handles IPC (e.g., saving files via Electron API).
