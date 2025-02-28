@@ -1,5 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import ResolutionSelector from "@/components/ResolutionSelector";
+import VideoPreview from "@/components/VideoPreview";
+import PlaybackVideo from "@/components/PlaybackVideo";
+import RecordControls from "@/components/RecordControls";
 
 export default function RecordPage() {
   const videoRef = useRef(null);
@@ -7,6 +11,14 @@ export default function RecordPage() {
   const recordedChunksRef = useRef([]);
   const [isRecording, setIsRecording] = useState(false);
   const [videoURL, setVideoURL] = useState("");
+  const [previewResolution, setPreviewResolution] = useState({
+    width: 640,
+    height: 480,
+  });
+  const [playbackResolution, setPlaybackResolution] = useState({
+    width: 640,
+    height: 480,
+  });
 
   useEffect(() => {
     // Request access to webcam
@@ -91,52 +103,38 @@ export default function RecordPage() {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Video Recorder</h1>
 
+      {/* Preview Resolution Selector */}
+      <ResolutionSelector
+        id="previewResolution"
+        label="Select Preview Resolution:"
+        currentValue={previewResolution}
+        onChange={setPreviewResolution}
+      />
+
       {/* Webcam Preview */}
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        className="w-full max-w-md bg-black"
-      ></video>
+      <VideoPreview videoRef={videoRef} resolution={previewResolution} />
 
       {/* Record/Stop Buttons */}
-      <div className="my-4">
-        {!isRecording && (
-          <button
-            onClick={handleStartRecording}
-            className="px-4 py-2 bg-blue-500 text-white rounded mr-2 cursor-pointer"
-          >
-            Start Recording
-          </button>
-        )}
-        {isRecording && (
-          <button
-            onClick={handleStopRecording}
-            className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
-          >
-            Stop Recording
-          </button>
-        )}
-      </div>
+      <RecordControls
+        isRecording={isRecording}
+        onStart={handleStartRecording}
+        onStop={handleStopRecording}
+        onSave={handleSaveToDisk}
+        showSaveButton={!isRecording && videoURL !== ""}
+      />
 
-      {/* Playback */}
-      {videoURL && (
-        <div className="mt-4">
-          <h2 className="text-xl font-semibold mb-2">Playback</h2>
-          <video
-            src={videoURL}
-            controls
-            className="w-full max-w-md bg-black"
-          ></video>
-        </div>
+      {/* Playback Section: only displayed after recording stops */}
+      {!isRecording && videoURL && (
+        <>
+          <ResolutionSelector
+            id="playbackResolution"
+            label="Select Playback Resolution:"
+            currentValue={playbackResolution}
+            onChange={setPlaybackResolution}
+          />
+          <PlaybackVideo videoURL={videoURL} resolution={playbackResolution} />
+        </>
       )}
-
-      <button
-        onClick={handleSaveToDisk}
-        className="px-4 py-2 bg-green-500 text-white rounded cursor-pointer"
-      >
-        Save to Disk
-      </button>
     </div>
   );
 }
