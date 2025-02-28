@@ -6,6 +6,7 @@ export default function RecordPage() {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [videoURL, setVideoURL] = useState("");
 
   useEffect(() => {
     // Request access to webcam
@@ -44,6 +45,7 @@ export default function RecordPage() {
       // Create a Blob from recorded chunks
       const blob = new Blob(recordedChunks, { type: "video/webm" });
       const url = URL.createObjectURL(blob);
+      setVideoURL(url);
     };
 
     recorder.start();
@@ -91,6 +93,18 @@ export default function RecordPage() {
           </button>
         )}
       </div>
+
+      {/* Playback */}
+      {videoURL && (
+        <div className="mt-4">
+          <h2 className="text-xl font-semibold mb-2">Playback</h2>
+          <video
+            src={videoURL}
+            controls
+            className="w-full max-w-md bg-black"
+          ></video>
+        </div>
+      )}
     </div>
   );
 }
