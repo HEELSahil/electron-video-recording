@@ -1,19 +1,19 @@
+// PlaybackVideo.js
 "use client";
-
-// Render the recorded video for playback
+// Display the recorded video for playback
 export default function PlaybackVideo({ videoURL, resolution }) {
   return (
-    <div className="mt-4">
-      <h2 className="text-xl font-semibold mb-2">Playback</h2>
+    <div className="my-4 flex justify-center">
       <video
         src={videoURL}
         controls
         style={{
-          width: resolution.width,
-          height: resolution.height,
+          width: `${resolution.width}px`,
+          height: `${resolution.height}px`,
           objectFit: "contain",
+          backgroundColor: "#000",
         }}
-        className="bg-black"
+        className="rounded-lg border border-gray-700"
       ></video>
     </div>
   );

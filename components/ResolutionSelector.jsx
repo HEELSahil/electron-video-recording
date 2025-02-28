@@ -1,5 +1,5 @@
+// ResolutionSelector.js
 "use client";
-
 // Render a dropdown to select a resolution
 export default function ResolutionSelector({
   label,
@@ -7,9 +7,16 @@ export default function ResolutionSelector({
   onChange,
   id,
 }) {
+  // Add more descriptive labels for resolutions
+  const resolutions = [
+    { label: "640x480 (SD)", value: "640x480" },
+    { label: "1280x720 (HD)", value: "1280x720" },
+    { label: "1920x1080 (Full HD)", value: "1920x1080" },
+  ];
+
   return (
     <div className="mb-4">
-      <label htmlFor={id} className="mr-2 font-semibold">
+      <label htmlFor={id} className="mr-2 font-semibold text-gray-300">
         {label}
       </label>
       <select
@@ -18,12 +25,14 @@ export default function ResolutionSelector({
           const [w, h] = e.target.value.split("x");
           onChange({ width: Number(w), height: Number(h) });
         }}
-        className="border rounded p-1"
-        defaultValue={currentValue.width + "x" + currentValue.height}
+        className="bg-gray-800 text-white border border-gray-600 rounded p-1"
+        value={`${currentValue.width}x${currentValue.height}`}
       >
-        <option value="640x480">640x480</option>
-        <option value="1280x720">1280x720</option>
-        <option value="1920x1080">1920x1080</option>
+        {resolutions.map((res) => (
+          <option key={res.value} value={res.value}>
+            {res.label}
+          </option>
+        ))}
       </select>
     </div>
   );

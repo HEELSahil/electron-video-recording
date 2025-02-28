@@ -47,30 +47,102 @@ export default function RecordPage() {
     width: 640,
     height: 480,
   });
+  const [actualDimensions, setActualDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
 
+  // Setup initial media stream with resolution constraints
   useEffect(() => {
-    // Request access to webcam
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
+    const setupMedia = async () => {
+      try {
+        // Request access to webcam with resolution constraints
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: previewResolution.width },
+            height: { ideal: previewResolution.height },
+          },
+          audio: true,
+        });
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+
+          // Log and store actual dimensions when video loads
+          videoRef.current.onloadedmetadata = () => {
+            const actualWidth = videoRef.current.videoWidth;
+            const actualHeight = videoRef.current.videoHeight;
+
+            console.log("Actual video dimensions:", {
+              width: actualWidth,
+              height: actualHeight,
+            });
+
+            setActualDimensions({
+              width: actualWidth,
+              height: actualHeight,
+            });
+          };
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error accessing webcam:", err);
         alert(
           "Unable to access webcam. Please grant permissions or check your device."
         );
-      });
-  }, []);
+      }
+    };
+
+    setupMedia();
+  }, []); // Only run on component mount
+
+  // Update constraints when resolution changes
+  useEffect(() => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject;
+      const videoTracks = stream.getVideoTracks();
+
+      if (videoTracks.length > 0) {
+        videoTracks[0]
+          .applyConstraints({
+            width: { ideal: previewResolution.width },
+            height: { ideal: previewResolution.height },
+          })
+          .then(() => {
+            // Update actual dimensions after constraints applied
+            setTimeout(() => {
+              if (videoRef.current) {
+                setActualDimensions({
+                  width: videoRef.current.videoWidth,
+                  height: videoRef.current.videoHeight,
+                });
+
+                console.log("Updated video dimensions:", {
+                  width: videoRef.current.videoWidth,
+                  height: videoRef.current.videoHeight,
+                });
+              }
+            }, 500); // Small delay to allow camera to adjust
+          })
+          .catch((error) => {
+            console.error("Could not apply video constraints:", error);
+          });
+      }
+    }
+  }, [previewResolution]); // Depend on previewResolution
 
   const handleStartRecording = () => {
     // Check if the video element and its stream are available
     if (!videoRef.current || !videoRef.current.srcObject) return;
     const stream = videoRef.current.srcObject;
+
+    // Try to use the codec that's most widely supported
+    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+      ? "video/webm;codecs=vp9"
+      : "video/webm";
+
     const recorder = new MediaRecorder(stream, {
-      mimeType: "video/webm; codecs=vp9", // or "video/webm; codecs=vp8"
+      mimeType: mimeType,
+      videoBitsPerSecond: 2500000, // Set a reasonable bitrate (2.5 Mbps)
     });
 
     recordedChunksRef.current = [];
@@ -84,8 +156,7 @@ export default function RecordPage() {
 
     // Event listener that fires when recording stops
     recorder.onstop = () => {
-      // Create a Blob from recorded chunks
-      const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+      const blob = new Blob(recordedChunksRef.current, { type: mimeType });
       const url = URL.createObjectURL(blob);
       setVideoURL(url);
     };
@@ -97,7 +168,7 @@ export default function RecordPage() {
 
   const handleStopRecording = () => {
     // Stop the recording if the MediaRecorder instance exists
-    if (mediaRecorder) {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
       setIsRecording(false);
     }
@@ -121,16 +192,21 @@ export default function RecordPage() {
     const webmBlob = new Blob(recordedChunksRef.current, {
       type: "video/webm",
     });
-    const mp4Blob = await convertWebMToMp4(webmBlob);
-    const filename = `recording-${Date.now()}.mp4`;
-    await downloadBlob(mp4Blob, filename);
+    try {
+      const mp4Blob = await convertWebMToMp4(webmBlob);
+      const filename = `recording-${Date.now()}.mp4`;
+      await downloadBlob(mp4Blob, filename);
+    } catch (error) {
+      console.error("Error converting to MP4:", error);
+      alert(`Error converting to MP4: ${error.message}`);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div
         className="bg-black rounded-3xl shadow-lg p-6"
-        style={{ width: `${previewResolution.width + 50}px` }}
+        style={{ width: `${previewResolution.width + 50}px`, maxWidth: "95vw" }}
       >
         <h1 className="text-3xl font-bold text-center text-indigo-300 mb-6">
           Video Recorder
@@ -143,6 +219,14 @@ export default function RecordPage() {
           currentValue={previewResolution}
           onChange={setPreviewResolution}
         />
+
+        {/* Display actual dimensions */}
+        {actualDimensions.width > 0 && (
+          <div className="text-sm text-gray-400 mb-2 text-center">
+            Actual camera resolution: {actualDimensions.width} ×{" "}
+            {actualDimensions.height}
+          </div>
+        )}
 
         {/* Webcam Preview */}
         <div className="flex justify-center my-6">
