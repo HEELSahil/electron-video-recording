@@ -4,6 +4,34 @@ import ResolutionSelector from "@/components/ResolutionSelector";
 import VideoPreview from "@/components/VideoPreview";
 import PlaybackVideo from "@/components/PlaybackVideo";
 import RecordControls from "@/components/RecordControls";
+import DownloadButtons from "@/components/DownloadButtons";
+import { convertWebMToMp4 } from "@/utils/convertToMp4";
+
+// Helper function to trigger download in browser or via Electron API
+async function downloadBlob(blob, filename) {
+  // Save the video file using the Electron API exposed in preload.js
+  if (window.electronAPI && window.electronAPI.saveVideo) {
+    // Convert the Blob to an ArrayBuffer and then to a Buffer
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const result = await window.electronAPI.saveVideo({ buffer, filename });
+    if (result.success) {
+      alert(`Video saved to: ${result.path}`);
+    } else {
+      alert(`Error saving video: ${result.error}`);
+    }
+  } else {
+    // In the browser, trigger a download via an anchor element
+    const url = URL.createObjectURL(blob); // Create a temporary URL for the blob data
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click(); // Programmatically click the anchor to trigger the download
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
 
 export default function RecordPage() {
   const videoRef = useRef(null);
@@ -75,37 +103,27 @@ export default function RecordPage() {
     }
   };
 
-  // After mediaRecorder.onstop or in a "Save" button handler
-  const handleSaveToDisk = async () => {
+  // Download WebM as recorded
+  const handleDownloadWebM = async () => {
     if (recordedChunksRef.current.length === 0) return;
-    const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-    // Convert the Blob to an ArrayBuffer and then to a Buffer
-    const arrayBuffer = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
+    const webmBlob = new Blob(recordedChunksRef.current, {
+      type: "video/webm",
+    });
     // Generate a unique filename using the current timestamp
     const filename = `recording-${Date.now()}.webm`;
+    await downloadBlob(webmBlob, filename);
+  };
 
-    // Save the video file using the Electron API exposed in preload.js
-    if (window.electronAPI && window.electronAPI.saveVideo) {
-      const result = await window.electronAPI.saveVideo({ buffer, filename });
-      if (result.success) {
-        alert(`Video saved to: ${result.path}`);
-      } else {
-        alert(`Error saving video: ${result.error}`);
-      }
-    } else {
-      // In the browser, trigger a download via an anchor element
-      const url = URL.createObjectURL(blob); // Create a temporary URL for the blob data
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click(); // Programmatically click the anchor to trigger the download
-      document.body.removeChild(a);
-      // Revoke the URL to free memory after a short delay
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }
+  // Convert WebM to MP4 then download
+  const handleDownloadMp4 = async () => {
+    if (recordedChunksRef.current.length === 0) return;
+    alert("Converting from WebM to MP4. This may take a few seconds...");
+    const webmBlob = new Blob(recordedChunksRef.current, {
+      type: "video/webm",
+    });
+    const mp4Blob = await convertWebMToMp4(webmBlob);
+    const filename = `recording-${Date.now()}.mp4`;
+    await downloadBlob(mp4Blob, filename);
   };
 
   return (
@@ -136,8 +154,6 @@ export default function RecordPage() {
           isRecording={isRecording}
           onStart={handleStartRecording}
           onStop={handleStopRecording}
-          onSave={handleSaveToDisk}
-          showSaveButton={!isRecording && videoURL !== ""}
         />
 
         {/* Playback Section: only displayed after recording stops */}
@@ -152,6 +168,11 @@ export default function RecordPage() {
             <PlaybackVideo
               videoURL={videoURL}
               resolution={playbackResolution}
+            />
+            {/* Download Buttons component */}
+            <DownloadButtons
+              onDownloadMp4={handleDownloadMp4}
+              onDownloadWebM={handleDownloadWebM}
             />
           </div>
         )}
