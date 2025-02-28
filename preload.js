@@ -1,4 +1,8 @@
 // preload.js
-window.addEventListener("DOMContentLoaded", () => {
-  console.log("Preload script loaded!");
+const { contextBridge, ipcRenderer } = require("electron");
+
+contextBridge.exposeInMainWorld("electronAPI", {
+  saveVideo: async (data) => {
+    return ipcRenderer.invoke("save-video", data);
+  },
 });

@@ -62,6 +62,26 @@ export default function RecordPage() {
     }
   };
 
+  // After mediaRecorder.onstop or in a "Save" button handler
+  const handleSaveToDisk = async () => {
+    if (!recordedChunks.length) return;
+    const blob = new Blob(recordedChunks, { type: "video/webm" });
+    // Convert the Blob to an ArrayBuffer and then to a Buffer
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Generate a unique filename using the current timestamp
+    const filename = `recording-${Date.now()}.webm`;
+
+    // Save the video file using the Electron API exposed in preload.js
+    const result = await window.electronAPI.saveVideo({ buffer, filename });
+    if (result.success) {
+      alert(`Video saved to: ${result.path}`);
+    } else {
+      alert(`Error saving video: ${result.error}`);
+    }
+  };
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Video Recorder</h1>
@@ -105,6 +125,13 @@ export default function RecordPage() {
           ></video>
         </div>
       )}
+
+      <button
+        onClick={handleSaveToDisk}
+        className="px-4 py-2 bg-green-500 text-white rounded"
+      >
+        Save to Disk
+      </button>
     </div>
   );
 }
