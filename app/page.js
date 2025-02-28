@@ -95,7 +95,16 @@ export default function RecordPage() {
         alert(`Error saving video: ${result.error}`);
       }
     } else {
-      alert("Save to disk is only available in the Electron environment.");
+      // In the browser, trigger a download via an anchor element
+      const url = URL.createObjectURL(blob); // Create a temporary URL for the blob data
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click(); // Programmatically click the anchor to trigger the download
+      document.body.removeChild(a);
+      // Revoke the URL to free memory after a short delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
   };
 
