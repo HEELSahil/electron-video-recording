@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 export default function RecordPage() {
   const videoRef = useRef(null);
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recordedChunks, setRecordedChunks] = useState([]);
+  const recordedChunksRef = useRef([]);
   const [isRecording, setIsRecording] = useState(false);
   const [videoURL, setVideoURL] = useState("");
 
@@ -33,24 +33,25 @@ export default function RecordPage() {
       mimeType: "video/webm; codecs=vp9", // or "video/webm; codecs=vp8"
     });
 
+    recordedChunksRef.current = [];
+
     // Event listener to collect recorded data chunks
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        setRecordedChunks((prev) => [...prev, event.data]);
+        recordedChunksRef.current.push(event.data);
       }
     };
 
     // Event listener that fires when recording stops
     recorder.onstop = () => {
       // Create a Blob from recorded chunks
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
       const url = URL.createObjectURL(blob);
       setVideoURL(url);
     };
 
     recorder.start();
     setMediaRecorder(recorder); // Save the recorder instance in state for later control
-    setRecordedChunks([]); // Clear any previous recorded chunks
     setIsRecording(true);
   };
 
@@ -64,8 +65,8 @@ export default function RecordPage() {
 
   // After mediaRecorder.onstop or in a "Save" button handler
   const handleSaveToDisk = async () => {
-    if (!recordedChunks.length) return;
-    const blob = new Blob(recordedChunks, { type: "video/webm" });
+    if (recordedChunksRef.current.length === 0) return;
+    const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
     // Convert the Blob to an ArrayBuffer and then to a Buffer
     const arrayBuffer = await blob.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
